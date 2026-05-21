@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KisanMind – AI Farming Assistant</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f7f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 16px;
+    }
+    header { text-align: center; margin-bottom: 10px; }
+    header h1 { font-size: 2rem; color: #2e7d32; }
+    header h1 span { color: #81c784; }
+    header p { color: #555; margin-top: 6px; font-size: 0.95rem; }
+    .lang-switch {
+      display: flex; gap: 8px;
+      justify-content: center; margin: 12px 0 20px;
+    }
+    .lang-switch button {
+      padding: 6px 18px; border-radius: 20px;
+      border: 1.5px solid #a5d6a7; background: white;
+      cursor: pointer; font-size: 0.85rem;
+      color: #2e7d32; font-weight: 600; transition: all 0.2s;
+    }
+    .lang-switch button.active { background: #2e7d32; color: white; }
+    .card {
+      background: white; border-radius: 16px; padding: 28px;
+      width: 100%; max-width: 640px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px;
+    }
+    label {
+      display: block; font-weight: 600; color: #333;
+      margin-bottom: 8px; font-size: 0.95rem;
+    }
+    select, textarea {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid #c8e6c9; border-radius: 10px;
+      font-size: 1rem; outline: none;
+      margin-bottom: 18px; color: #222;
+      transition: border 0.2s; background: white;
+    }
+    select:focus, textarea:focus { border-color: #2e7d32; }
+    textarea { resize: vertical; min-height: 100px; }
+    .example-row {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      align-items: center; margin-bottom: 18px;
+    }
+    .example-row span { font-size: 0.85rem; color: #888; }
+    .eg-btn {
+      padding: 7px 16px; border-radius: 20px;
+      border: 1.5px solid #a5d6a7; background: white;
+      cursor: pointer; font-size: 0.85rem;
+      color: #2e7d32; transition: all 0.2s;
+    }
+    .eg-btn:hover { background: #e8f5e9; }
+    .btn-row { display: flex; gap: 10px; }
+    .demo-btn {
+      padding: 14px; border-radius: 10px;
+      border: 1.5px solid #2e7d32; background: white;
+      color: #2e7d32; font-size: 1rem;
+      font-weight: 600; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .demo-btn:hover { background: #e8f5e9; }
+    .analyze-btn {
+      flex: 1; padding: 14px; background: #2e7d32;
+      color: white; border: none; border-radius: 10px;
+      font-size: 1.05rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .analyze-btn:hover { background: #1b5e20; }
+    #output { display: none; }
+    .result-header {
+      display: flex; align-items: center;
+      gap: 10px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .badge {
+      background: #e8f5e9; color: #2e7d32;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600;
+    }
+    .result-header h2 { font-size: 1.1rem; color: #1b5e20; }
+    .crop-tag {
+      background: #f1f8e9; border: 1px solid #aed581;
+      color: #558b2f; padding: 3px 12px;
+      border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+    }
+    .result-block {
+      background: #f9fbe7; border-left: 4px solid #aed581;
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;
+    }
+    .result-block.warning { background: #fff8e1; border-left-color: #ffca28; }
+    .result-block.danger  { background: #fce4ec; border-left-color: #e57373; }
+    .result-block.why-block {
+      background: #e3f2fd; border-left-color: #64b5f6; cursor: pointer;
+    }
+    .result-block h3 {
+      font-size: 0.8rem; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #777; margin-bottom: 6px;
+    }
+    .result-block p { font-size: 0.97rem; color: #333; line-height: 1.6; }
+    .why-content {
+      display: none; margin-top: 10px; font-size: 0.9rem;
+      color: #1565c0; line-height: 1.6;
+      border-top: 1px solid #bbdefb; padding-top: 10px;
+    }
+    .sdg-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .sdg-tag {
+      background: #e8f5e9; color: #2e7d32;
+      padding: 3px 10px; border-radius: 12px;
+      font-size: 0.78rem; font-weight: 600;
+    }
+    .confidence {
+      margin-top: 16px; font-size: 0.85rem;
+      color: #888; display: flex; align-items: center; gap: 8px;
+    }
+    .confidence-bar {
+      flex: 1; height: 6px; background: #e0e0e0;
+      border-radius: 4px; overflow: hidden;
+    }
+    .confidence-bar-fill {
+      height: 100%; background: #66bb6a;
+      border-radius: 4px; transition: width 0.6s ease;
+    }
+    .thinking {
+      text-align: center; padding: 20px;
+      color: #2e7d32; font-size: 1rem; display: none;
+    }
+    .dot-anim::after {
+      content: ''; animation: dots 1.2s steps(3,end) infinite;
+    }
+    @keyframes dots {
+      0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; }
+    }
+    footer {
+      margin-top: 10px; font-size: 0.8rem;
+      color: #aaa; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌾 Kisan<span>MIND</span></h1>
+  <p id="subtitle">AI-Powered Farming Decision Assistant</p>
+</header>
+
+<div class="lang-switch">
+  <button onclick="setLang('en')" id="btn-en" class="active">English</button>
+  <button onclick="setLang('kn')" id="btn-kn">ಕನ್ನಡ</button>
+  <button onclick="setLang('hi')" id="btn-hi">हिन्दी</button>
+</div>
+
+<div class="card">
+  <label id="label-crop">🌱 Select Crop</label>
+  <select id="cropInput"></select>
+
+  <label id="label-problem">📋 Describe your crop problem</label>
+  <textarea id="problemInput"
+    placeholder="e.g. My tomato leaves are turning yellow and have brown spots..."></textarea>
+
+  <div class="example-row">
+    <span id="label-examples">Quick examples:</span>
+    <button class="eg-btn" onclick="fillExample('yellow leaves on my plant')">Yellow leaves</button>
+    <button class="eg-btn" onclick="fillExample('brown spots on leaves')">Brown spots</button>
+    <button class="eg-btn" onclick="fillExample('insects eating my crops')">Insects</button>
+    <button class="eg-btn" onclick="fillExample('plant is wilting and drooping')">Wilting</button>
+    <button class="eg-btn" onclick="fillExample('white powder on leaves')">White powder</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="demo-btn" onclick="demoFill()" id="demoBtn">⚡ Quick Demo</button>
+    <button class="analyze-btn" onclick="analyze()" id="analyzeBtn">🔍 Analyze Problem</button>
+  </div>
+</div>
+
+<div class="thinking" id="thinking">
+  <p class="dot-anim" id="thinking-text">🤖 KisanMind AI is analyzing your problem</p>
+</div>
+
+<div class="card" id="output">
+  <div class="result-header">
+    <span class="badge">✅ <span id="badge-text">AI Analysis Complete</span></span>
+    <h2 id="cropTitle"></h2>
+    <span class="crop-tag" id="cropTag"></span>
+  </div>
+
+  <div class="result-block">
+    <h3 id="label-cause">🔍 Possible Cause</h3>
+    <p id="causeText"></p>
+  </div>
+
+  <div class="result-block warning">
+    <h3 id="label-action">✅ Recommended Action</h3>
+    <p id="actionText"></p>
+  </div>
+
+  <div class="result-block danger">
+    <h3 id="label-avoid">⚠️ What to Avoid</h3>
+    <p id="warningText"></p>
+  </div>
+
+  <div class="result-block why-block" onclick="toggleWhy()">
+    <h3 id="label-why">💡 Why this recommendation? <span style="float:right" id="why-arrow">▼</span></h3>
+    <div class="why-content" id="whyContent">
+      <p id="whyText"></p>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <p style="font-size:0.8rem;color:#888;margin-bottom:6px;" id="label-sdg">🌍 Sustainability Impact</p>
+    <div class="sdg-row">
+      <span class="sdg-tag" id="sdg1">SDG 2 – Zero Hunger</span>
+      <span class="sdg-tag" id="sdg2">SDG 6 – Clean Water</span>
+      <span class="sdg-tag" id="sdg3">SDG 12 – Responsible Use</span>
+    </div>
+  </div>
+
+  <div class="confidence">
+    <span id="label-confidence">Confidence</span>
+    <div class="confidence-bar">
+      <div class="confidence-bar-fill" id="confBar" style="width:0%"></div>
+    </div>
+    <span id="confText">0%</span>
+  </div>
+</div>
+
+<footer>KisanMind · Built for farmers · Hackathon Prototype 2025</footer>
+
+<script>
+
+  // ── UI STRINGS ───────────────────────────────────────────────
+  const ui = {
+    en: {
+      subtitle:"AI-Powered Farming Decision Assistant",
+      labelCrop:"🌱 Select Crop", labelProb:"📋 Describe your crop problem",
+      labelEx:"Quick examples:", demo:"⚡ Quick Demo", analyze:"🔍 Analyze Problem",
+      thinking:"🤖 KisanMind AI is analyzing your problem",
+      badge:"AI Analysis Complete", cause:"🔍 Possible Cause",
+      action:"✅ Recommended Action", avoid:"⚠️ What to Avoid",
+      why:"💡 Why this recommendation?", sdg:"🌍 Sustainability Impact",
+      conf:"Confidence", selectHint:"-- Select a crop --",
+      sdg1:"SDG 2 – Zero Hunger", sdg2:"SDG 6 – Clean Water",
+      sdg3:"SDG 12 – Responsible Use",
+      placeholder:"e.g. My tomato leaves are turning yellow and have brown spots..."
+    },
+    kn: {
+      subtitle:"AI-ಚಾಲಿತ ಕೃಷಿ ನಿರ್ಧಾರ ಸಹಾಯಕ",
+      labelCrop:"🌱 ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ", labelProb:"📋 ನಿಮ್ಮ ಬೆಳೆ ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ",
+      labelEx:"ತ್ವರಿತ ಉದಾಹರಣೆಗಳು:", demo:"⚡ ತ್ವರಿತ ಡೆಮೊ", analyze:"🔍 ವಿಶ್ಲೇಷಿಸಿ",
+      thinking:"🤖 KisanMind AI ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ವಿಶ್ಲೇಷಿಸುತ್ತಿದೆ",
+      badge:"AI ವಿಶ್ಲೇಷಣೆ ಪೂರ್ಣಗೊಂಡಿದೆ", cause:"🔍 ಸಂಭವನೀಯ ಕಾರಣ",
+      action:"✅ ಶಿಫಾರಸು ಮಾಡಿದ ಕ್ರಮ", avoid:"⚠️ ತಪ್ಪಿಸಬೇಕಾದದ್ದು",
+      why:"💡 ಈ ಶಿಫಾರಸು ಏಕೆ?", sdg:"🌍 ಸುಸ್ಥಿರತೆ ಪ್ರಭಾವ",
+      conf:"ವಿಶ್ವಾಸ ಮಟ್ಟ", selectHint:"-- ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ --",
+      sdg1:"SDG 2 – ಶೂನ್ಯ ಹಸಿವು", sdg2:"SDG 6 – ಸ್ವಚ್ಛ ನೀರು",
+      sdg3:"SDG 12 – ಜವಾಬ್ದಾರಿಯುತ ಬಳಕೆ",
+      placeholder:"ಉದಾ: ನನ್ನ ಟೊಮಾಟೊ ಎಲೆಗಳು ಹಳದಿ ಬಣ್ಣಕ್ಕೆ ತಿರುಗುತ್ತಿವೆ..."
+    },
+    hi: {
+      subtitle:"AI-संचालित कृषि निर्णय सहायक",
+      labelCrop:"🌱 फसल चुनें", labelProb:"📋 अपनी फसल की समस्या बताएं",
+      labelEx:"त्वरित उदाहरण:", demo:"⚡ त्वरित डेमो", analyze:"🔍 विश्लेषण करें",
+      thinking:"🤖 KisanMind AI विश्लेषण कर रहा है",
+      badge:"AI विश्लेषण पूर्ण", cause:"🔍 संभावित कारण",
+      action:"✅ अनुशंसित कार्रवाई", avoid:"⚠️ क्या न करें",
+      why:"💡 यह सिफारिश क्यों?", sdg:"🌍 स्थिरता प्रभाव",
+      conf:"विश्वास स्तर", selectHint:"-- फसल चुनें --",
+      sdg1:"SDG 2 – शून्य भूख", sdg2:"SDG 6 – स्वच्छ जल",
+      sdg3:"SDG 12 – जिम्मेदार उपयोग",
+      placeholder:"उदा: मेरे टमाटर की पत्तियाँ पीली हो रही हैं..."
+    }
+  };
+
+  // ── CROPS ────────────────────────────────────────────────────
+  const crops = {
+    tomato:{ en:"Tomato",  kn:"ಟೊಮಾಟೊ",    hi:"टमाटर" },
+    rice:  { en:"Rice",    kn:"ಅಕ್ಕಿ",      hi:"चावल"  },
+    wheat: { en:"Wheat",   kn:"ಗೋಧಿ",      hi:"गेहूं" },
+    maize: { en:"Maize",   kn:"ಮೆಕ್ಕೆಜೋಳ", hi:"मक्का" },
+    cotton:{ en:"Cotton",  kn:"ಹತ್ತಿ",     hi:"कपास"  },
+    onion: { en:"Onion",   kn:"ಈರುಳ್ಳಿ",   hi:"प्याज" }
+  };
+
+  // ── KNOWLEDGE BASE ───────────────────────────────────────────
+  const solutions = [
+    {
+      keywords: ["yellow","yellowing","pale","light green"],
+      en: {
+        title:"Nutrient Deficiency Detected",
+        cause:"Yellowing leaves are typically caused by nitrogen deficiency or overwatering. When soil lacks nitrogen, older leaves lose chlorophyll and turn pale yellow, starting from the bottom of the plant.",
+        action:"Apply urea fertiliser (46-0-0) at 5kg per acre, or use a balanced NPK fertiliser. Water deeply but less frequently — allow topsoil to dry between sessions. Check for waterlogging at the roots.",
+        warning:"Do not apply excessive fertiliser at once — it can burn roots. Avoid watering during peak afternoon heat.",
+        why:"Nitrogen is essential for chlorophyll production. Low nitrogen directly causes yellowing. This recommendation follows ICAR advisory guidelines for vegetable crops in Karnataka."
+      },
+      kn: {
+        title:"ಪೋಷಕಾಂಶ ಕೊರತೆ ಪತ್ತೆಯಾಗಿದೆ",
+        cause:"ಎಲೆಗಳು ಹಳದಿಯಾಗುವುದು ಸಾಮಾನ್ಯವಾಗಿ ಸಾರಜನಕ ಕೊರತೆ ಅಥವಾ ಹೆಚ್ಚು ನೀರು ಹಾಕುವುದರಿಂದ ಉಂಟಾಗುತ್ತದೆ. ಮಣ್ಣಿನಲ್ಲಿ ಸಾರಜನಕ ಕಡಿಮೆಯಾದಾಗ, ಹಳೆಯ ಎಲೆಗಳು ಕ್ಲೋರೊಫಿಲ್ ಕಳೆದುಕೊಂಡು ಕೆಳಗಿನಿಂದ ಹಳದಿ ಬಣ್ಣಕ್ಕೆ ತಿರುಗುತ್ತವೆ.",
+        action:"ಎಕರೆಗೆ 5 ಕೆಜಿ ಯೂರಿಯಾ ಗೊಬ್ಬರ ಅಥವಾ NPK ಗೊಬ್ಬರ ಹಾಕಿ. ನೀರನ್ನು ಕಡಿಮೆ ಆಗಾಗ್ಗೆ ಆಳವಾಗಿ ಹಾಕಿ — ಮಣ್ಣಿನ ಮೇಲ್ಮೈ ಒಣಗಲು ಅವಕಾಶ ನೀಡಿ. ಬೇರಿನ ಬಳಿ ನೀರು ನಿಲ್ಲದಂತೆ ನೋಡಿಕೊಳ್ಳಿ.",
+        warning:"ಒಮ್ಮೆಲೇ ಹೆಚ್ಚು ಗೊಬ್ಬರ ಹಾಕಬೇಡಿ — ಇದು ಬೇರುಗಳನ್ನು ಸುಡಬಹುದು. ಮಧ್ಯಾಹ್ನದ ಬಿಸಿಲಿನಲ್ಲಿ ನೀರು ಹಾಕಬೇಡಿ.",
+        why:"ಸಾರಜನಕ ಕ್ಲೋರೊಫಿಲ್ ಉತ್ಪಾದನೆಗೆ ಅತ್ಯಗತ್ಯ. ಕಡಿಮೆ ಸಾರಜನಕವು ನೇರವಾಗಿ ಹಳದಿ ಬಣ್ಣಕ್ಕೆ ಕಾರಣವಾಗುತ್ತದೆ. ಈ ಶಿಫಾರಸು ICAR ಮಾರ್ಗದರ್ಶಿ ಸೂಚನೆಗಳನ್ನು ಅನುಸರಿಸುತ್ತದೆ."
+      },
+      hi: {
+        title:"पोषक तत्वों की कमी पाई गई",
+        cause:"पत्तियों का पीला होना आमतौर पर नाइट्रोजन की कमी या अधिक पानी देने के कारण होता है। जब मिट्टी में नाइट्रोजन कम होती है, तो पुरानी पत्तियाँ क्लोरोफिल खो देती हैं और पौधे के निचले हिस्से से पीली पड़ने लगती हैं।",
+        action:"प्रति एकड़ 5 किग्रा यूरिया खाद (46-0-0) या संतुलित NPK खाद डालें। गहरा पानी दें लेकिन कम बार — दो सिंचाइयों के बीच मिट्टी की ऊपरी परत को सूखने दें।",
+        warning:"एक बार में अधिक खाद न डालें — इससे जड़ें जल सकती हैं। दोपहर की तेज धूप में पानी देने से बचें।",
+        why:"नाइट्रोजन क्लोरोफिल उत्पादन के लिए आवश्यक है। कम नाइट्रोजन सीधे पीलेपन का कारण बनती है। यह सिफारिश ICAR दिशानिर्देशों पर आधारित है।"
+      },
+      confidence: 88
+    },
+    {
+      keywords: ["brown spots","dark spots","spots on leaves","black spots","spots"],
+      en: {
+        title:"Fungal Leaf Disease Detected",
+        cause:"Brown or dark spots are a strong indicator of Early Blight (Alternaria solani) or Septoria leaf spot — fungal diseases that spread rapidly in humid conditions above 25°C.",
+        action:"Spray Mancozeb (0.25%) or Copper Oxychloride on all affected leaves. Remove and destroy heavily infected leaves. Spray in early morning. Repeat after 7 days if spots persist.",
+        warning:"Avoid overhead irrigation — moisture on leaves accelerates fungal spread. Do not compost infected leaves — burn or bury them.",
+        why:"Fungal spores thrive in warm humid conditions. Mancozeb disrupts fungal enzyme activity. Early intervention prevents spread. Source: ICAR Disease Management Guidelines."
+      },
+      kn: {
+        title:"ಶಿಲೀಂಧ್ರ ಎಲೆ ರೋಗ ಪತ್ತೆಯಾಗಿದೆ",
+        cause:"ಕಂದು ಅಥವಾ ಕಪ್ಪು ಕಲೆಗಳು ಅರ್ಲಿ ಬ್ಲೈಟ್ (Alternaria solani) ಅಥವಾ ಸೆಪ್ಟೋರಿಯಾ ಎಲೆ ಕಲೆ ರೋಗದ ಸೂಚನೆ — ಇವು 25°C ಮೇಲಿನ ತೇವ ವಾತಾವರಣದಲ್ಲಿ ವೇಗವಾಗಿ ಹರಡುವ ಶಿಲೀಂಧ್ರ ರೋಗಗಳು.",
+        action:"ಎಲ್ಲಾ ಸೋಂಕಿತ ಎಲೆಗಳ ಮೇಲೆ ಮ್ಯಾಂಕೊಜೆಬ್ (0.25%) ಅಥವಾ ಕಾಪರ್ ಆಕ್ಸಿಕ್ಲೋರೈಡ್ ಸಿಂಪಡಿಸಿ. ತೀವ್ರವಾಗಿ ಸೋಂಕಿತ ಎಲೆಗಳನ್ನು ತೆಗೆದು ನಾಶ ಮಾಡಿ. ಬೆಳಿಗ್ಗೆ ಬೇಗ ಸಿಂಪಡಿಸಿ. ಕಲೆಗಳು ಉಳಿದರೆ 7 ದಿನಗಳ ನಂತರ ಮತ್ತೆ ಸಿಂಪಡಿಸಿ.",
+        warning:"ತಲೆಯ ಮೇಲಿಂದ ನೀರು ಹಾಕಬೇಡಿ — ಎಲೆಗಳ ಮೇಲೆ ತೇವ ಶಿಲೀಂಧ್ರ ಹರಡುವಿಕೆಯನ್ನು ವೇಗಗೊಳಿಸುತ್ತದೆ. ಸೋಂಕಿತ ಎಲೆಗಳನ್ನು ಕಾಂಪೋಸ್ಟ್ ಮಾಡಬೇಡಿ.",
+        why:"ಶಿಲೀಂಧ್ರ ಬೀಜಕಗಳು ಬೆಚ್ಚನೆಯ ತೇವ ವಾತಾವರಣದಲ್ಲಿ ಬೆಳೆಯುತ್ತವೆ. ಮ್ಯಾಂಕೊಜೆಬ್ ಶಿಲೀಂಧ್ರದ ಕಿಣ್ವ ಚಟುವಟಿಕೆಯನ್ನು ತಡೆಯುತ್ತದೆ. ಆರಂಭಿಕ ಚಿಕಿತ್ಸೆ ಆರೋಗ್ಯಕರ ಗಿಡಗಳಿಗೆ ಹರಡುವುದನ್ನು ತಡೆಯುತ್ತದೆ."
+      },
+      hi: {
+        title:"फंगल पत्ती रोग पाया गया",
+        cause:"भूरे या काले धब्बे अर्ली ब्लाइट (Alternaria solani) या सेप्टोरिया लीफ स्पॉट के मजबूत संकेत हैं — ये फंगल रोग 25°C से ऊपर नमी वाली स्थितियों में तेजी से फैलते हैं।",
+        action:"सभी प्रभावित पत्तियों पर मैनकोजेब (0.25%) या कॉपर ऑक्सीक्लोराइड का छिड़काव करें। भारी संक्रमित पत्तियों को हटाकर नष्ट करें। सुबह जल्दी छिड़काव करें।",
+        warning:"ऊपर से सिंचाई से बचें — पत्तियों पर नमी फंगस के फैलाव को तेज करती है। संक्रमित पत्तियों को खाद न बनाएं।",
+        why:"फंगल बीजाणु गर्म नम परिस्थितियों में पनपते हैं। मैनकोजेब फंगल एंजाइम गतिविधि को बाधित करता है। स्रोत: ICAR रोग प्रबंधन दिशानिर्देश।"
+      },
+      confidence: 91
+    },
+    {
+      keywords: ["insects","bugs","pest","worms","caterpillar","aphids","eating"],
+      en: {
+        title:"Pest Infestation Detected",
+        cause:"Visible insects or chewed leaf edges suggest infestation — likely aphids, whiteflies, or caterpillars. Aphids cluster under leaves and suck sap, causing curling and yellowing.",
+        action:"Spray Neem oil solution (5ml per litre + few drops of soap) on all plant surfaces including underside of leaves. For severe cases use Chlorpyrifos 2ml per litre of water.",
+        warning:"Avoid spraying during flowering — it kills pollinators. Do not spray in direct sunlight or on rainy days.",
+        why:"Neem oil contains Azadirachtin which disrupts the insect life cycle without harming beneficial insects. It is an approved organic pest control method."
+      },
+      kn: {
+        title:"ಕೀಟ ಬಾಧೆ ಪತ್ತೆಯಾಗಿದೆ",
+        cause:"ಕೀಟಗಳು ಗೋಚರಿಸುವುದು ಅಥವಾ ಎಲೆಗಳ ಅಂಚುಗಳು ತಿನ್ನಲ್ಪಟ್ಟಿರುವುದು ಕೀಟ ಬಾಧೆಯ ಸೂಚನೆ — ಹೇನು, ಬಿಳಿ ನೊಣ ಅಥವಾ ಕಂಬಳಿ ಹುಳ ಇರಬಹುದು.",
+        action:"ಎಲ್ಲಾ ಸಸ್ಯ ಮೇಲ್ಮೈಗಳ ಮೇಲೆ ಬೇವಿನ ಎಣ್ಣೆ ದ್ರಾವಣ (ಪ್ರತಿ ಲೀಟರ್‌ಗೆ 5ml + ಸ್ವಲ್ಪ ಸೋಪು) ಸಿಂಪಡಿಸಿ. ತೀವ್ರ ಸಂದರ್ಭದಲ್ಲಿ ಕ್ಲೋರ್‌ಪೈರಿಫಾಸ್ 2ml ಪ್ರತಿ ಲೀಟರ್ ನೀರಿಗೆ ಬಳಸಿ.",
+        warning:"ಹೂಬಿಡುವ ಸಮಯದಲ್ಲಿ ಸಿಂಪಡಿಸಬೇಡಿ — ಇದು ಪರಾಗಸ್ಪರ್ಶ ಕೀಟಗಳನ್ನು ಕೊಲ್ಲುತ್ತದೆ. ನೇರ ಬಿಸಿಲಿನಲ್ಲಿ ಸಿಂಪಡಿಸಬೇಡಿ.",
+        why:"ಬೇವಿನ ಎಣ್ಣೆಯಲ್ಲಿ ಅಜಾಡಿರಾಕ್ಟಿನ್ ಇರುತ್ತದೆ, ಇದು ಕೀಟಗಳ ಜೀವನ ಚಕ್ರವನ್ನು ಅಡ್ಡಿಪಡಿಸುತ್ತದೆ. ಇದು ಅನುಮೋದಿತ ಜೈವಿಕ ಕೀಟ ನಿಯಂತ್ರಣ ವಿಧಾನ."
+      },
+      hi: {
+        title:"कीट संक्रमण पाया गया",
+        cause:"दिखाई देने वाले कीड़े या पत्तियों के किनारों का खाया जाना कीट संक्रमण का संकेत है — संभवतः एफिड्स, सफेद मक्खी या इल्लियाँ।",
+        action:"पत्तियों के नीचे सहित सभी पौधों की सतहों पर नीम तेल घोल (5ml प्रति लीटर + थोड़ा साबुन) का छिड़काव करें।",
+        warning:"फूल आने के दौरान छिड़काव से बचें — यह परागणकर्ताओं को मारता है। सीधी धूप में छिड़काव न करें।",
+        why:"नीम तेल में अजाडिराक्टिन होता है जो कीड़ों के जीवन चक्र को बाधित करता है। यह एक अनुमोदित जैविक कीट नियंत्रण विधि है।"
+      },
+      confidence: 85
+    },
+    {
+      keywords: ["wilt","wilting","drooping","falling","limp","soft stem"],
+      en: {
+        title:"Root Rot or Water Stress Detected",
+        cause:"Wilting despite adequate water is usually caused by root rot (Fusarium or Pythium fungi) or bacterial wilt. These block the plant's vascular system preventing water from reaching leaves.",
+        action:"Check roots — healthy roots are white, rotted roots are brown and smell foul. Reduce watering, improve drainage, and apply Trichoderma-based bio-fungicide. Remove severely affected plants.",
+        warning:"Do not increase watering if plant is wilting — overwatering worsens root rot. Avoid reusing soil from affected beds for the next crop.",
+        why:"Root rot caused by Fusarium blocks xylem vessels preventing water transport. Trichoderma is a beneficial fungus that outcompetes harmful soil pathogens naturally."
+      },
+      kn: {
+        title:"ಬೇರು ಕೊಳೆತ ಅಥವಾ ನೀರಿನ ಒತ್ತಡ ಪತ್ತೆಯಾಗಿದೆ",
+        cause:"ಸಾಕಷ್ಟು ನೀರು ಇದ್ದರೂ ಬಾಡುವುದು ಸಾಮಾನ್ಯವಾಗಿ ಬೇರು ಕೊಳೆತ (Fusarium ಅಥವಾ Pythium ಶಿಲೀಂಧ್ರ) ಅಥವಾ ಬ್ಯಾಕ್ಟೀರಿಯಾ ವಿಲ್ಟ್‌ನಿಂದ ಉಂಟಾಗುತ್ತದೆ.",
+        action:"ಬೇರುಗಳನ್ನು ಪರೀಕ್ಷಿಸಿ — ಆರೋಗ್ಯಕರ ಬೇರುಗಳು ಬಿಳಿಯಾಗಿರುತ್ತವೆ, ಕೊಳೆತ ಬೇರುಗಳು ಕಂದು ಬಣ್ಣದ್ದಾಗಿ ದುರ್ವಾಸನೆ ಬರುತ್ತದೆ. ನೀರು ಕಡಿಮೆ ಮಾಡಿ ಮತ್ತು ಟ್ರೈಕೋಡರ್ಮಾ ಬಳಸಿ.",
+        warning:"ಗಿಡ ಬಾಡುತ್ತಿದ್ದರೆ ನೀರನ್ನು ಹೆಚ್ಚಿಸಬೇಡಿ — ಹೆಚ್ಚು ನೀರು ಬೇರು ಕೊಳೆತವನ್ನು ಇನ್ನಷ್ಟು ಹದಗೆಡಿಸುತ್ತದೆ.",
+        why:"Fusarium ನಿಂದ ಉಂಟಾಗುವ ಬೇರು ಕೊಳೆತ ನೀರು ಸಾಗಣೆಯನ್ನು ತಡೆಯುತ್ತದೆ. ಟ್ರೈಕೋಡರ್ಮಾ ನೈಸರ್ಗಿಕವಾಗಿ ಹಾನಿಕಾರಕ ರೋಗಕಾರಕಗಳನ್ನು ಸೋಲಿಸುತ್ತದೆ."
+      },
+      hi: {
+        title:"जड़ सड़न या जल तनाव पाया गया",
+        cause:"पर्याप्त पानी के बावजूद मुरझाना आमतौर पर जड़ सड़न (Fusarium या Pythium कवक) या बैक्टीरियल विल्ट के कारण होता है।",
+        action:"जड़ों की जाँच करें — स्वस्थ जड़ें सफेद होती हैं, सड़ी जड़ें भूरी होती हैं और बदबू आती है। पानी कम करें और ट्राइकोडर्मा-आधारित जैव-फफूंदनाशक लगाएं।",
+        warning:"पौधे के मुरझाने पर पानी न बढ़ाएं — अधिक पानी जड़ सड़न को बिगाड़ता है।",
+        why:"Fusarium द्वारा जड़ सड़न जाइलम वाहिकाओं को अवरुद्ध करती है। ट्राइकोडर्मा एक लाभकारी कवक है जो प्राकृतिक रूप से हानिकारक रोगजनकों को हराता है।"
+      },
+      confidence: 82
+    },
+    {
+      keywords: ["white powder","powdery","white coating","white dust","mildew"],
+      en: {
+        title:"Powdery Mildew Detected",
+        cause:"A white powdery coating on leaves is Powdery Mildew caused by Erysiphe species. It thrives in dry weather with high humidity at night and spreads through wind-borne spores.",
+        action:"Spray baking soda solution (1 teaspoon per litre + few drops of soap). Alternatively use Sulphur-based fungicide (Sulfex 3g per litre). Ensure good air circulation between plants.",
+        warning:"Do not wet leaves unnecessarily — moisture at night increases mildew spread. Avoid planting susceptible crops too close together.",
+        why:"Baking soda changes the pH on the leaf surface making it hostile for fungal growth. Sulphur-based fungicides have been proven effective against powdery mildew in decades of research."
+      },
+      kn: {
+        title:"ಪುಡಿ ತುಪ್ಪಟ ರೋಗ ಪತ್ತೆಯಾಗಿದೆ",
+        cause:"ಎಲೆಗಳ ಮೇಲೆ ಬಿಳಿ ಪುಡಿ ಲೇಪನ ಎಂದರೆ Erysiphe ಪ್ರಭೇದದಿಂದ ಉಂಟಾಗುವ ಪುಡಿ ತುಪ್ಪಟ ರೋಗ. ಇದು ರಾತ್ರಿ ಹೆಚ್ಚಿನ ತೇವಾಂಶದೊಂದಿಗೆ ಒಣ ಹವಾಮಾನದಲ್ಲಿ ಬೆಳೆಯುತ್ತದೆ.",
+        action:"ಬೇಕಿಂಗ್ ಸೋಡಾ ದ್ರಾವಣ (ಪ್ರತಿ ಲೀಟರ್‌ಗೆ 1 ಚಮಚ + ಸ್ವಲ್ಪ ಸೋಪು) ಸಿಂಪಡಿಸಿ. ಪರ್ಯಾಯವಾಗಿ ಗಂಧಕ ಆಧಾರಿತ ಶಿಲೀಂಧ್ರನಾಶಕ (Sulfex 3g ಪ್ರತಿ ಲೀಟರ್) ಬಳಸಿ.",
+        warning:"ಎಲೆಗಳನ್ನು ಅನಗತ್ಯವಾಗಿ ತೇವ ಮಾಡಬೇಡಿ — ರಾತ್ರಿ ತೇವ ತುಪ್ಪಟ ಹರಡುವಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.",
+        why:"ಬೇಕಿಂಗ್ ಸೋಡಾ ಎಲೆಯ ಮೇಲ್ಮೈ pH ಬದಲಿಸಿ ಶಿಲೀಂಧ್ರ ಬೆಳವಣಿಗೆಗೆ ಪ್ರತಿಕೂಲ ಮಾಡುತ್ತದೆ. ಗಂಧಕ ಆಧಾರಿತ ಶಿಲೀಂಧ್ರನಾಶಕಗಳು ದಶಕಗಳ ಸಂಶೋಧನೆಯಲ್ಲಿ ಪರಿಣಾಮಕಾರಿ ಎಂದು ಸಾಬೀತಾಗಿದೆ."
+      },
+      hi: {
+        title:"पाउडरी मिल्ड्यू पाया गया",
+        cause:"पत्तियों पर सफेद पाउडर जैसी परत Erysiphe प्रजाति द्वारा होने वाला पाउडरी मिल्ड्यू है। यह रात में अधिक नमी के साथ शुष्क मौसम में पनपता है।",
+        action:"बेकिंग सोडा घोल (1 चम्मच प्रति लीटर + थोड़ा साबुन) का छिड़काव करें। वैकल्पिक रूप से सल्फर-आधारित फफूंदनाशक (Sulfex 3g प्रति लीटर) उपयोग करें।",
+        warning:"पत्तियों को अनावश्यक रूप से गीला न करें — रात में नमी मिल्ड्यू के फैलाव को बढ़ाती है।",
+        why:"बेकिंग सोडा पत्ती की सतह के pH को बदलकर फंगल विकास के लिए प्रतिकूल बनाता है। सल्फर-आधारित फफूंदनाशक दशकों के शोध में प्रभावी साबित हुए हैं।"
+      },
+      confidence: 93
+    },
+    {
+      keywords: ["fruit rot","rotting","fruit decay","soft fruit","smell","rot"],
+      en: {
+        title:"Fruit Rot Detected",
+        cause:"Rotting fruit is commonly caused by Botrytis grey mould or Blossom End Rot. Botrytis spreads in cool humid conditions. Blossom End Rot is caused by calcium deficiency and irregular watering.",
+        action:"Remove and destroy affected fruits immediately. Spray Carbendazim 1g per litre. For Blossom End Rot apply calcium nitrate (4g per litre) and maintain consistent irrigation.",
+        warning:"Never leave rotting fruit on the plant or ground — it spreads spores to healthy plants. Avoid overhead irrigation on fruiting plants.",
+        why:"Calcium is essential for cell wall formation in developing fruits. Deficiency causes cell collapse at the blossom end. Consistent watering ensures steady calcium uptake from soil."
+      },
+      kn: {
+        title:"ಹಣ್ಣಿನ ಕೊಳೆ ಪತ್ತೆಯಾಗಿದೆ",
+        cause:"ಹಣ್ಣುಗಳು ಕೊಳೆಯುವುದು ಸಾಮಾನ್ಯವಾಗಿ ಬೋಟ್ರಿಟಿಸ್ ಬೂದು ಅಚ್ಚು ಅಥವಾ ಬ್ಲಾಸಂ ಎಂಡ್ ರಾಟ್‌ನಿಂದ ಉಂಟಾಗುತ್ತದೆ. ಬ್ಲಾಸಂ ಎಂಡ್ ರಾಟ್ ಕ್ಯಾಲ್ಸಿಯಂ ಕೊರತೆಯಿಂದ ಉಂಟಾಗುತ್ತದೆ.",
+        action:"ಪ್ರಭಾವಿತ ಹಣ್ಣುಗಳನ್ನು ತಕ್ಷಣ ತೆಗೆದು ನಾಶ ಮಾಡಿ. ಕಾರ್ಬೆಂಡಾಜಿಮ್ 1g ಪ್ರತಿ ಲೀಟರ್ ಸಿಂಪಡಿಸಿ. ಕ್ಯಾಲ್ಸಿಯಂ ನೈಟ್ರೇಟ್ (4g ಪ್ರತಿ ಲೀಟರ್) ಸಿಂಪಡಿಸಿ.",
+        warning:"ಕೊಳೆತ ಹಣ್ಣುಗಳನ್ನು ಗಿಡದ ಮೇಲೆ ಅಥವಾ ನೆಲದ ಮೇಲೆ ಬಿಡಬೇಡಿ — ಇದು ಆರೋಗ್ಯಕರ ಗಿಡಗಳಿಗೆ ಬೀಜಕ ಹರಡುತ್ತದೆ.",
+        why:"ಕ್ಯಾಲ್ಸಿಯಂ ಅಭಿವೃದ್ಧಿ ಹೊಂದುತ್ತಿರುವ ಹಣ್ಣುಗಳ ಕೋಶ ಗೋಡೆ ರಚನೆಗೆ ಅತ್ಯಗತ್ಯ. ನಿಯಮಿತ ನೀರಾವರಿ ಮಣ್ಣಿನಿಂದ ಕ್ಯಾಲ್ಸಿಯಂ ಹೀರಿಕೆಯನ್ನು ಖಚಿತಪಡಿಸುತ್ತದೆ."
+      },
+      hi: {
+        title:"फल सड़न पाई गई",
+        cause:"फल सड़ना आमतौर पर बोट्रीटिस ग्रे मोल्ड या ब्लॉसम एंड रॉट के कारण होता है। ब्लॉसम एंड रॉट कैल्शियम की कमी और अनियमित सिंचाई के कारण होता है।",
+        action:"प्रभावित फलों को तुरंत हटाकर नष्ट करें। कार्बेंडाजिम 1g प्रति लीटर का छिड़काव करें। कैल्शियम नाइट्रेट (4g प्रति लीटर) लगाएं।",
+        warning:"सड़े फल को पौधे पर या जमीन पर न छोड़ें — यह स्वस्थ पौधों में बीजाणु फैलाता है।",
+        why:"विकासशील फलों में कोशिका भित्ति निर्माण के लिए कैल्शियम आवश्यक है। नियमित सिंचाई मिट्टी से कैल्शियम अवशोषण सुनिश्चित करती है।"
+      },
+      confidence: 87
+    },
+    {
+      keywords: ["no flower","not flowering","flower drop","no fruit","falling flower"],
+      en: {
+        title:"Pollination or Nutrition Issue Detected",
+        cause:"Failure to flower or flower drop is caused by excessive nitrogen, temperature stress above 35°C, or lack of pollinators visiting the crop.",
+        action:"Reduce nitrogen fertiliser and switch to phosphorus-rich fertiliser (DAP) to encourage flowering. Spray boron solution (1g per litre) to improve fruit set. Water consistently.",
+        warning:"Avoid excessive pesticide use during flowering — it repels or kills bees. Do not stress plants with drought during flowering stage.",
+        why:"Phosphorus directly promotes root development and flowering. Boron is essential for pollen germination and tube growth — standard recommendations from agricultural universities."
+      },
+      kn: {
+        title:"ಪರಾಗಸ್ಪರ್ಶ ಅಥವಾ ಪೋಷಣೆ ಸಮಸ್ಯೆ ಪತ್ತೆಯಾಗಿದೆ",
+        cause:"ಹೂ ಬಿಡದಿರುವುದು ಅಥವಾ ಹೂ ಉದುರುವುದು ಅತಿ ಸಾರಜನಕ, 35°C ಮೇಲಿನ ತಾಪಮಾನ ಒತ್ತಡ, ಅಥವಾ ಪರಾಗಸ್ಪರ್ಶ ಕೀಟಗಳ ಕೊರತೆಯಿಂದ ಉಂಟಾಗುತ್ತದೆ.",
+        action:"ಸಾರಜನಕ ಗೊಬ್ಬರ ಕಡಿಮೆ ಮಾಡಿ ಮತ್ತು DAP ರಂಜಕ ಭರಿತ ಗೊಬ್ಬರಕ್ಕೆ ಬದಲಿಸಿ. ಬೋರಾನ್ ದ್ರಾವಣ (1g ಪ್ರತಿ ಲೀಟರ್) ಸಿಂಪಡಿಸಿ. ನಿಯಮಿತವಾಗಿ ನೀರು ಹಾಕಿ.",
+        warning:"ಹೂಬಿಡುವ ಸಮಯದಲ್ಲಿ ಅತಿ ಕೀಟನಾಶಕ ಬಳಸಬೇಡಿ — ಇದು ಜೇನುನೊಣಗಳನ್ನು ದೂರ ಓಡಿಸುತ್ತದೆ.",
+        why:"ರಂಜಕ ನೇರವಾಗಿ ಬೇರು ಬೆಳವಣಿಗೆ ಮತ್ತು ಹೂ ಬಿಡುವಿಕೆಯನ್ನು ಉತ್ತೇಜಿಸುತ್ತದೆ. ಬೋರಾನ್ ಪರಾಗ ಮೊಳಕೆಗೆ ಅತ್ಯಗತ್ಯ."
+      },
+      hi: {
+        title:"परागण या पोषण समस्या पाई गई",
+        cause:"फूल न आना या फूलों का झड़ना अत्यधिक नाइट्रोजन, 35°C से ऊपर तापमान तनाव, या परागणकर्ताओं की कमी के कारण होता है।",
+        action:"नाइट्रोजन खाद कम करें और DAP (फास्फोरस युक्त) खाद पर जाएं। बोरॉन घोल (1g प्रति लीटर) का छिड़काव करें। नियमित पानी दें।",
+        warning:"फूल आने के दौरान अत्यधिक कीटनाशक उपयोग से बचें — यह मधुमक्खियों को भगाता या मारता है।",
+        why:"फास्फोरस सीधे जड़ विकास और फूल आने को बढ़ावा देता है। बोरॉन पराग अंकुरण के लिए आवश्यक है।"
+      },
+      confidence: 79
+    }
+  ];
+
+  const defaultResult = {
+    en: {
+      title:"General Crop Advisory",
+      cause:"Your symptoms could relate to multiple factors — environmental stress, nutrient imbalance, disease, or pests. A precise diagnosis needs more information or a physical inspection.",
+      action:"Observe the plant carefully: check roots, check underside of leaves for insects or fungal growth, check your watering schedule. Consult your nearest Krishi Vigyan Kendra (KVK).",
+      warning:"Avoid applying any chemical treatment without a confirmed diagnosis — incorrect chemicals can worsen the problem and harm the soil.",
+      why:"This general advisory is shown because the symptoms did not match a specific known pattern. A photo or physical inspection would allow a more precise diagnosis."
+    },
+    kn: {
+      title:"ಸಾಮಾನ್ಯ ಬೆಳೆ ಸಲಹೆ",
+      cause:"ನಿಮ್ಮ ಲಕ್ಷಣಗಳು ಪರಿಸರ ಒತ್ತಡ, ಪೋಷಕಾಂಶ ಅಸಮತೋಲನ, ರೋಗ ಅಥವಾ ಕೀಟಗಳಿಗೆ ಸಂಬಂಧಿಸಿರಬಹುದು. ನಿಖರ ರೋಗ ನಿರ್ಣಯಕ್ಕೆ ಹೆಚ್ಚಿನ ಮಾಹಿತಿ ಅಗತ್ಯ.",
+      action:"ಗಿಡವನ್ನು ಎಚ್ಚರಿಕೆಯಿಂದ ಗಮನಿಸಿ: ಬೇರುಗಳನ್ನು ಪರೀಕ್ಷಿಸಿ, ಎಲೆಗಳ ಕೆಳಭಾಗ ಪರೀಕ್ಷಿಸಿ. ನಿಮ್ಮ ಹತ್ತಿರದ ಕೃಷಿ ವಿಜ್ಞಾನ ಕೇಂದ್ರ (KVK) ಸಂಪರ್ಕಿಸಿ.",
+      warning:"ಖಚಿತ ರೋಗ ನಿರ್ಣಯವಿಲ್ಲದೆ ಯಾವುದೇ ರಾಸಾಯನಿಕ ಚಿಕಿತ್ಸೆ ನೀಡಬೇಡಿ.",
+      why:"ಈ ಸಾಮಾನ್ಯ ಸಲಹೆ ತೋರಿಸಲಾಗಿದೆ ಏಕೆಂದರೆ ಲಕ್ಷಣಗಳು ಯಾವುದೇ ನಿರ್ದಿಷ್ಟ ತಿಳಿದ ಮಾದರಿಗೆ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ."
+    },
+    hi: {
+      title:"सामान्य फसल सलाह",
+      cause:"आपके लक्षण पर्यावरणीय तनाव, पोषक तत्वों के असंतुलन, बीमारी या कीटों से संबंधित हो सकते हैं। सटीक निदान के लिए अधिक जानकारी की आवश्यकता है।",
+      action:"पौधे को ध्यान से देखें: जड़ों की जाँच करें, पत्तियों के नीचे की जाँच करें। अपने नजदीकी कृषि विज्ञान केंद्र (KVK) से संपर्क करें।",
+      warning:"बिना पुष्टि किए किसी भी रासायनिक उपचार से बचें — गलत रसायन समस्या को बिगाड़ सकते हैं।",
+      why:"यह सामान्य सलाह दिखाई गई है क्योंकि लक्षण किसी विशिष्ट ज्ञात पैटर्न से मेल नहीं खाते।"
+    },
+    confidence: 60
+  };
+
+  // ── STATE ─────────────────────────────────────────────────────
+  let currentLang = 'en';
+
+  // ── FUNCTIONS ─────────────────────────────────────────────────
+  function loadCrops() {
+    const select = document.getElementById('cropInput');
+    select.innerHTML = '';
+    const hint = document.createElement('option');
+    hint.value = '';
+    hint.textContent = ui[currentLang].selectHint;
+    select.appendChild(hint);
+    for (const key in crops) {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = crops[key][currentLang];
+      select.appendChild(opt);
+    }
+  }
+
+  function setLang(l) {
+    currentLang = l;
+    const t = ui[l];
+    document.getElementById('subtitle').textContent         = t.subtitle;
+    document.getElementById('label-crop').textContent       = t.labelCrop;
+    document.getElementById('label-problem').textContent    = t.labelProb;
+    document.getElementById('label-examples').textContent   = t.labelEx;
+    document.getElementById('demoBtn').textContent          = t.demo;
+    document.getElementById('analyzeBtn').textContent       = t.analyze;
+    document.getElementById('thinking-text').textContent    = t.thinking;
+    document.getElementById('badge-text').textContent       = t.badge;
+    document.getElementById('label-cause').textContent      = t.cause;
+    document.getElementById('label-action').textContent     = t.action;
+    document.getElementById('label-avoid').textContent      = t.avoid;
+    document.getElementById('label-why').innerHTML          = t.why + ' <span style="float:right" id="why-arrow">▼</span>';
+    document.getElementById('label-sdg').textContent        = t.sdg;
+    document.getElementById('label-confidence').textContent = t.conf;
+    document.getElementById('sdg1').textContent             = t.sdg1;
+    document.getElementById('sdg2').textContent             = t.sdg2;
+    document.getElementById('sdg3').textContent             = t.sdg3;
+    document.getElementById('problemInput').placeholder     = t.placeholder;
+    document.getElementById('btn-en').classList.toggle('active', l === 'en');
+    document.getElementById('btn-kn').classList.toggle('active', l === 'kn');
+    document.getElementById('btn-hi').classList.toggle('active', l === 'hi');
+    loadCrops();
+  }
+
+  function fillExample(text) {
+    document.getElementById('problemInput').value = text;
+  }
+
+  function demoFill() {
+    document.getElementById('cropInput').value = 'tomato';
+    document.getElementById('problemInput').value = 'brown spots on leaves';
+  }
+
+  function toggleWhy() {
+    const content = document.getElementById('whyContent');
+    const arrow   = document.getElementById('why-arrow');
+    const isOpen  = content.style.display === 'block';
+    content.style.display = isOpen ? 'none' : 'block';
+    arrow.textContent     = isOpen ? '▼' : '▲';
+  }
+
+  function analyze() {
+    const input    = document.getElementById('problemInput').value.trim().toLowerCase();
+    const cropKey  = document.getElementById('cropInput').value;
+    const cropName = cropKey ? crops[cropKey][currentLang] : '';
+
+    if (!input) { alert('Please describe your crop problem first.'); return; }
+
+    document.getElementById('output').style.display     = 'none';
+    document.getElementById('whyContent').style.display = 'none';
+    document.getElementById('thinking').style.display   = 'block';
+
+    setTimeout(() => {
+      document.getElementById('thinking').style.display = 'none';
+
+      let match = null;
+      for (const s of solutions) {
+        if (s.keywords.some(kw => input.includes(kw))) { match = s; break; }
+      }
+
+      const data = match ? match[currentLang] : defaultResult[currentLang];
+      const conf = match ? match.confidence   : defaultResult.confidence;
+
+      document.getElementById('cropTitle').textContent   = data.title;
+      document.getElementById('cropTag').textContent     = cropName ? '🌱 ' + cropName : '';
+      document.getElementById('causeText').textContent   = data.cause;
+      document.getElementById('actionText').textContent  = data.action;
+      document.getElementById('warningText').textContent = data.warning;
+      document.getElementById('whyText').textContent     = data.why;
+      document.getElementById('output').style.display    = 'block';
+      document.getElementById('confText').textContent    = conf + '%';
+
+      setTimeout(() => {
+        document.getElementById('confBar').style.width = conf + '%';
+      }, 100);
+
+      document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
+    }, 1800);
+  }
+
+  // ── START ─────────────────────────────────────────────────────
+  loadCrops();
+</script>
+</body>
+</html>
