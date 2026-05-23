@@ -10,10 +10,10 @@ Built during a college-level hackathon based on the theme:
 
 **"Technology for Sustainable Development"**
 
-- 👥 Team Members:
--Chiranth R Kaushik — @chiranthkaushik1409-lgtm
+### 👥 Team Members
+- Chiranth R Kaushik — [@chiranthkaushik1409-lgtm](https://github.com/chiranthkaushik1409-lgtm)
 - Abhishek Rai A — [@Abhirai2006](https://github.com/Abhirai2006)
-- -G Lochan-(https://github.com/lochan03)
+- G Lochan — [@lochang03](https://github.com/lochang03)
 - Duration: 6 Hours
 
 ---
