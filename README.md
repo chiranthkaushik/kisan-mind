@@ -12,6 +12,7 @@ Built during a college-level hackathon based on the theme:
 
 - 👥 Team Members:
 -Chiranth R Kaushik — @chiranthkaushik1409-lgtm
+-[Abhirai2006](https://github.com/Abhirai2006)
 - ⏱️ Duration: 6 Hours
 
 ---
