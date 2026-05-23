@@ -10,7 +10,8 @@ Built during a college-level hackathon based on the theme:
 
 **"Technology for Sustainable Development"**
 
-- 👥 Team Size: 4 Members
+- 👥 Team Members:
+- Chiranth R Kaushik
 - ⏱️ Duration: 6 Hours
 
 ---
